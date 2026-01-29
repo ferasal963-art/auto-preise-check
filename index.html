@@ -1,183 +1,269 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Auto Preise Check</title>
-
-<style>
-  body { font-family: Arial, sans-serif; background:#eef2f5; margin:0; }
-  header { background:#0d47a1; color:#fff; padding:22px; text-align:center; }
-  .container { max-width:1000px; margin:24px auto; background:#fff; padding:22px; border-radius:10px; box-shadow:0 4px 12px rgba(0,0,0,0.1); }
-  .search-box { display:flex; gap:10px; flex-wrap:wrap; }
-  .search-box input { flex:1; min-width:220px; padding:12px; font-size:16px; }
-  .search-box button { padding:12px 18px; background:#0d47a1; color:#fff; border:none; cursor:pointer; font-size:16px; border-radius:8px; }
-  .search-box button:hover { background:#08306b; }
-  .pill { display:inline-block; padding:6px 10px; border-radius:999px; background:#f2f4f7; font-size:13px; margin-top:10px; }
-  .grid { display:grid; grid-template-columns: 1fr; gap:14px; margin-top:16px; }
-  @media (min-width: 900px){ .grid{ grid-template-columns: 1.2fr 0.8fr; } }
-  table { width:100%; margin-top:14px; border-collapse:collapse; }
-  th, td { padding:12px; border-bottom:1px solid #ddd; text-align:left; }
-  th { background:#f5f5f5; }
-  .price-good { color:green; font-weight:bold; }
-  .price-high { color:red; font-weight:bold; }
-  .muted { color:#667085; font-size:14px; }
-  .card { border:1px solid #e5e7eb; border-radius:10px; padding:14px; background:#fff; }
-  .card h2 { margin:0 0 8px 0; font-size:18px; }
-  .form input, .form textarea { width:100%; padding:12px; margin:6px 0; border:1px solid #d0d5dd; border-radius:8px; font-size:16px; }
-  .form textarea { min-height:90px; resize:vertical; }
-  .btn { padding:12px 18px; background:#0d47a1; color:#fff; border:none; cursor:pointer; font-size:16px; border-radius:8px; width:100%; }
-  .btn:hover { background:#08306b; }
-  .btn-wa { display:block; text-align:center; margin-top:10px; padding:12px 18px; background:#25D366; color:#fff; border-radius:8px; text-decoration:none; font-weight:bold; }
-  footer { text-align:center; padding:20px; color:#777; }
-  .hint { background:#fff7ed; border:1px solid #fed7aa; padding:10px; border-radius:10px; font-size:14px; }
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Auto Preise Check – Preisrechner</title>
+  <style>
+    body{font-family:Arial,sans-serif;background:#eef2f5;margin:0}
+    header{background:#0d47a1;color:#fff;padding:22px;text-align:center}
+    .container{max-width:980px;margin:24px auto;background:#fff;padding:22px;border-radius:12px;box-shadow:0 4px 12px rgba(0,0,0,.1)}
+    .grid{display:grid;grid-template-columns:1fr;gap:14px}
+    @media (min-width:900px){.grid{grid-template-columns:1fr 1fr}}
+    .card{border:1px solid #e5e7eb;border-radius:12px;padding:16px;background:#fff}
+    .card h2{margin:0 0 10px 0;font-size:18px}
+    label{display:block;font-size:13px;color:#475467;margin:10px 0 6px}
+    input,select{width:100%;padding:12px;border:1px solid #d0d5dd;border-radius:10px;font-size:16px}
+    .btn{margin-top:14px;width:100%;padding:12px 18px;background:#0d47a1;color:#fff;border:none;border-radius:10px;font-size:16px;cursor:pointer}
+    .btn:hover{background:#08306b}
+    .muted{color:#667085;font-size:14px;line-height:1.35}
+    .pill{display:inline-block;padding:7px 10px;border-radius:999px;background:#f2f4f7;font-size:13px}
+    .big{font-size:28px;font-weight:800;margin:6px 0}
+    .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+    .ok{color:green;font-weight:700}
+    .warn{color:#b42318;font-weight:700}
+    .table{width:100%;border-collapse:collapse;margin-top:10px}
+    .table td{padding:8px 0;border-bottom:1px solid #eef2f5}
+    footer{text-align:center;color:#777;padding:18px}
+    details{margin-top:10px}
+    summary{cursor:pointer;color:#0d47a1;font-weight:700}
+  </style>
 </head>
 
 <body>
-
 <header>
   <h1>🚗 Auto Preise Check</h1>
-  <p>Vergleich + Händler-Modus: Schnäppchen finden & Ankauf-Anfragen bekommen</p>
+  <p>Fahrzeugdaten eingeben → Marktpreis-Schätzung + Händler-Zielpreis</p>
 </header>
 
 <div class="container">
-
-  <div class="search-box">
-    <input type="text" id="searchInput" placeholder="Suche z.B. BMW 3er, Audi A4">
-    <button onclick="search()">Suchen</button>
+  <div class="row" style="justify-content:space-between;margin-bottom:10px">
+    <span class="pill">✅ Eingabe: Modell, Baujahr, KM, Zustand</span>
+    <span class="pill">💼 Ergebnis: Marktpreis + Ankauf-Zielpreis</span>
   </div>
-
-  <div class="pill">✅ Händler-Modus: günstigste Angebote oben + „Sehr günstig – kaufen!“</div>
-
-  <table id="resultTable" style="display:none;">
-    <thead>
-      <tr>
-        <th>Anbieter</th>
-        <th>Auto</th>
-        <th>Preis</th>
-        <th>Bewertung</th>
-      </tr>
-    </thead>
-    <tbody id="results"></tbody>
-  </table>
 
   <div class="grid">
     <div class="card">
-      <h2>🔔 Auto zum Ankauf anbieten</h2>
-      <p class="muted">Wenn jemand das Formular absendet, bekommst du eine Benachrichtigung (E-Mail), sobald Formspree aktiv ist.</p>
+      <h2>📥 Fahrzeug eingeben</h2>
 
-      <div class="hint">
-        ⚠️ Wichtig: Ersetze später <b>DEIN_FORM_ID</b> durch deine Formspree-ID (formspree.io).  
-        Bis dahin funktioniert das Formular noch nicht.
-      </div>
+      <label>Marke</label>
+      <select id="brand">
+        <option>BMW</option>
+        <option>Audi</option>
+        <option>Mercedes</option>
+        <option>Volkswagen</option>
+        <option>Opel</option>
+        <option>Ford</option>
+        <option>Toyota</option>
+        <option>Skoda</option>
+      </select>
 
-      <form class="form" action="https://formspree.io/f/DEIN_FORM_ID" method="POST">
-        <input type="text" name="name" placeholder="Name" required>
-        <input type="text" name="phone" placeholder="Telefon / WhatsApp" required>
-        <input type="text" name="car" placeholder="Auto (z.B. BMW 320d)" required>
-        <input type="number" name="year" placeholder="Baujahr">
-        <input type="number" name="km" placeholder="Kilometerstand">
-        <input type="number" name="price" placeholder="Wunschpreis (€)">
-        <textarea name="message" placeholder="Beschreibung / Schäden / Extras"></textarea>
+      <label>Modell (Beispiel: 3er, A4, C-Klasse, Golf)</label>
+      <input id="model" placeholder="z.B. 3er" />
 
-        <button class="btn" type="submit">Auto absenden</button>
-      </form>
+      <label>Baujahr</label>
+      <input id="year" type="number" placeholder="z.B. 2018" />
 
-      <!-- WhatsApp Schnellkontakt (ersetze die Nummer) -->
-      <a class="btn-wa"
-         href="https://wa.me/491234567890?text=Hallo!%20Ich%20m%C3%B6chte%20mein%20Auto%20anbieten.%0A%0AModell:%20%0ABaujahr:%20%0AKM:%20%0APreis:%20%0ABeschreibung:%20">
-         Per WhatsApp anbieten
-      </a>
-      <p class="muted">➡️ Ersetze die Nummer <b>491234567890</b> durch deine WhatsApp Nummer (mit Ländercode, ohne +).</p>
+      <label>Kilometerstand</label>
+      <input id="km" type="number" placeholder="z.B. 85000" />
+
+      <label>Getriebe</label>
+      <select id="trans">
+        <option value="auto">Automatik</option>
+        <option value="man">Manuell</option>
+      </select>
+
+      <label>Kraftstoff</label>
+      <select id="fuel">
+        <option value="diesel">Diesel</option>
+        <option value="petrol">Benzin</option>
+        <option value="hybrid">Hybrid</option>
+        <option value="ev">Elektro</option>
+      </select>
+
+      <label>Zustand</label>
+      <select id="cond">
+        <option value="good">Sehr gut</option>
+        <option value="ok">Gut / normal</option>
+        <option value="needs">Mängel / Reparaturen</option>
+      </select>
+
+      <label>Unfallfrei?</label>
+      <select id="accident">
+        <option value="yes">Ja</option>
+        <option value="no">Nein / unbekannt</option>
+      </select>
+
+      <button class="btn" onclick="calc()">Preis berechnen</button>
+
+      <p class="muted" style="margin-top:12px">
+        Hinweis: Das ist eine <b>Schätzung</b> anhand typischer Wertkurven. Für echte Live-Marktpreise
+        (AutoScout24/Mobile/DAT/Schwacke) brauchen wir später eine Datenquelle/API.
+      </p>
+
+      <details class="muted">
+        <summary>Wie wird gerechnet?</summary>
+        <div style="margin-top:8px">
+          - Basiswert nach Marke/Modellklasse<br/>
+          - Altersabschlag pro Jahr<br/>
+          - KM-Abschlag pro 10.000 km<br/>
+          - Zuschläge/Abschläge: Automatik, Kraftstoff, Zustand, Unfall<br/>
+          - Händler-Zielpreis = Marktpreis minus Marge (standard 12–18%) minus Sicherheits-Puffer
+        </div>
+      </details>
     </div>
 
     <div class="card">
-      <h2>💡 Tipp für Händler</h2>
-      <p class="muted">Die Bewertung basiert auf dem Durchschnittspreis der Treffer:</p>
-      <ul class="muted">
-        <li><b>Sehr günstig – kaufen!</b> = deutlich unter Markt</li>
-        <li><b>Unter Marktpreis</b> = gute Chance</li>
-        <li><b>Marktpreis</b> = normal</li>
-        <li><b>Zu teuer</b> = eher lassen</li>
-      </ul>
-      <p class="muted">Später können wir Baujahr/KM-Filter + Gewinnspanne + echte Datenquellen hinzufügen.</p>
+      <h2>📊 Ergebnis</h2>
+
+      <div id="resultEmpty" class="muted">
+        Gib links die Daten ein und klicke auf <b>Preis berechnen</b>.
+      </div>
+
+      <div id="resultBox" style="display:none">
+        <div class="muted">Geschätzter Marktpreis (Privat/Inserat):</div>
+        <div class="big" id="marketPrice">–</div>
+
+        <div class="muted" style="margin-top:10px">Empfohlener Händler-Ankauf (dein Zielpreis):</div>
+        <div class="big" id="buyPrice">–</div>
+
+        <div class="muted" style="margin-top:10px">Einschätzung:</div>
+        <div id="verdict" class="ok">–</div>
+
+        <table class="table muted">
+          <tr><td>Alter</td><td id="ageLine" style="text-align:right">–</td></tr>
+          <tr><td>KM-Faktor</td><td id="kmLine" style="text-align:right">–</td></tr>
+          <tr><td>Zustand/Unfall</td><td id="condLine" style="text-align:right">–</td></tr>
+          <tr><td>Zu-/Abschläge</td><td id="adjLine" style="text-align:right">–</td></tr>
+        </table>
+
+        <p class="muted" style="margin-top:10px">
+          💡 Tipp: Wenn du ein Angebot <b>unter deinem Ankauf-Zielpreis</b> findest, ist das meist ein gutes “günstig einkaufen” Signal.
+        </p>
+      </div>
     </div>
   </div>
-
 </div>
 
-<footer>
-  © 2026 Auto Preise Check – Alle Rechte vorbehalten
-</footer>
+<footer>© 2026 Auto Preise Check</footer>
 
 <script>
-// Demo-Daten (später kann das durch echte Daten ersetzt werden)
-const cars = [
-  {anbieter:"Mobile.de", auto:"BMW 3er", preis:27900},
-  {anbieter:"AutoScout24", auto:"BMW 3er", preis:28500},
-  {anbieter:"Autohaus Müller", auto:"BMW 3er", preis:30100},
-  {anbieter:"Privatanbieter", auto:"BMW 3er", preis:25500},
+  // Sehr grobe Basiswerte (nur Demo). Später ersetzen wir das durch echte Datenquelle.
+  // "modelClass" wird aus Modelltext grob geschätzt, damit du ohne riesige Datenbank starten kannst.
+  const brandBase = {
+    "BMW": 25000, "Audi": 24000, "Mercedes": 26000, "Volkswagen": 20000,
+    "Opel": 16000, "Ford": 17000, "Toyota": 18500, "Skoda": 17500
+  };
 
-  {anbieter:"Mobile.de", auto:"Audi A4", preis:26500},
-  {anbieter:"AutoScout24", auto:"Audi A4", preis:27200},
-  {anbieter:"Autohaus Schmidt", auto:"Audi A4", preis:29000},
-  {anbieter:"Privatanbieter", auto:"Audi A4", preis:24800}
-];
-
-function search() {
-  const query = document.getElementById("searchInput").value.trim().toLowerCase();
-  const table = document.getElementById("resultTable");
-  const results = document.getElementById("results");
-  results.innerHTML = "";
-
-  let filtered = cars.filter(c => c.auto.toLowerCase().includes(query));
-
-  if (!query) {
-    alert("Bitte gib Marke/Modell ein (z.B. BMW 3er).");
-    table.style.display = "none";
-    return;
+  function guessModelMultiplier(modelText){
+    const m = (modelText || "").toLowerCase();
+    // kleine Heuristik nach Modellnamen
+    if (m.includes("golf") || m.includes("a3") || m.includes("1er") || m.includes("corsa") || m.includes("focus")) return 0.85;
+    if (m.includes("a4") || m.includes("3er") || m.includes("c-klasse") || m.includes("passat") || m.includes("octavia")) return 1.00;
+    if (m.includes("a6") || m.includes("5er") || m.includes("e-klasse") || m.includes("superb")) return 1.20;
+    if (m.includes("x5") || m.includes("q7") || m.includes("gle") || m.includes("touareg")) return 1.35;
+    return 1.00;
   }
 
-  if (filtered.length === 0) {
-    alert("Keine Autos gefunden.");
-    table.style.display = "none";
-    return;
-  }
+  function clamp(n, min, max){ return Math.max(min, Math.min(max, n)); }
+  function eur(x){ return Math.round(x).toLocaleString("de-DE") + " €"; }
 
-  // günstigste zuerst
-  filtered.sort((a,b) => a.preis - b.preis);
+  function calc(){
+    const brand = document.getElementById("brand").value;
+    const model = document.getElementById("model").value.trim();
+    const year = Number(document.getElementById("year").value);
+    const km = Number(document.getElementById("km").value);
+    const trans = document.getElementById("trans").value;
+    const fuel = document.getElementById("fuel").value;
+    const cond = document.getElementById("cond").value;
+    const accident = document.getElementById("accident").value;
 
-  // Marktpreis = Durchschnitt
-  const avg = filtered.reduce((sum, item) => sum + item.preis, 0) / filtered.length;
+    const nowYear = new Date().getFullYear();
 
-  filtered.forEach(car => {
-    const diff = car.preis - avg;
-    let rating = "";
-
-    if (diff < -1500) {
-      rating = "<span class='price-good'>🔥 Sehr günstig – kaufen!</span>";
-    } else if (diff < -500) {
-      rating = "<span class='price-good'>✅ Unter Marktpreis</span>";
-    } else if (diff < 800) {
-      rating = "⚠️ Marktpreis";
-    } else {
-      rating = "<span class='price-high'>❌ Zu teuer</span>";
+    if(!model || !year || year < 1990 || year > nowYear || !km || km < 0){
+      alert("Bitte Modell, Baujahr (gültig) und Kilometerstand eingeben.");
+      return;
     }
 
-    results.innerHTML += `
-      <tr>
-        <td>${car.anbieter}</td>
-        <td>${car.auto}</td>
-        <td>${car.preis.toLocaleString()} €</td>
-        <td>${rating}</td>
-      </tr>
-    `;
-  });
+    // 1) Basis
+    let base = (brandBase[brand] || 20000) * guessModelMultiplier(model);
 
-  table.style.display = "table";
-}
+    // 2) Alter
+    const age = nowYear - year;
+    // Altersabschlag: in den ersten Jahren stärker, danach flacher
+    let ageFactor = Math.pow(0.88, clamp(age, 0, 20)); // pro Jahr ~ -12%
+    ageFactor = clamp(ageFactor, 0.15, 1);
+
+    // 3) Kilometer
+    // 10k km über 60k -> Abschlag, unter 60k -> leicht positiv
+    const kmOver = km - 60000;
+    let kmFactor = 1.0;
+    if (kmOver > 0) {
+      kmFactor -= (kmOver / 10000) * 0.018; // ~ -1.8% pro 10k über 60k
+    } else {
+      kmFactor += (Math.abs(kmOver) / 10000) * 0.006; // ~ +0.6% pro 10k unter 60k
+    }
+    kmFactor = clamp(kmFactor, 0.55, 1.15);
+
+    // 4) Anpassungen
+    let adj = 0;
+
+    // Getriebe
+    if(trans === "auto") adj += 0.03; else adj -= 0.01;
+
+    // Kraftstoff (sehr grob, markt/regionabhängig)
+    if(fuel === "diesel") adj += 0.01;
+    if(fuel === "petrol") adj += 0.00;
+    if(fuel === "hybrid") adj += 0.03;
+    if(fuel === "ev") adj += 0.02;
+
+    // Zustand
+    if(cond === "good") adj += 0.03;
+    if(cond === "ok") adj += 0.00;
+    if(cond === "needs") adj -= 0.10;
+
+    // Unfall
+    if(accident === "no") adj -= 0.08;
+
+    // 5) Marktpreis-Schätzung
+    let market = base * ageFactor * kmFactor * (1 + adj);
+
+    // realistischer Boden
+    market = Math.max(market, 1200);
+
+    // 6) Händler-Zielpreis (damit du günstiger einkaufst)
+    // Je nach Segment lieber 12–18% unter Markt + Puffer
+    const margin = (market > 25000) ? 0.14 : 0.17; // teurer -> geringere %, günstiger -> höhere %
+    const riskBuffer = 700; // pauschal, kann man später dynamisch machen (z.B. nach Zustand/KM)
+    let buy = market * (1 - margin) - riskBuffer;
+    buy = Math.max(buy, 600);
+
+    // 7) Anzeige
+    document.getElementById("resultEmpty").style.display = "none";
+    document.getElementById("resultBox").style.display = "block";
+
+    document.getElementById("marketPrice").textContent = eur(market);
+    document.getElementById("buyPrice").textContent = eur(buy);
+
+    const verdictEl = document.getElementById("verdict");
+    // Wenn Zustand schlecht oder Unfall: Hinweis
+    if(cond === "needs" || accident === "no"){
+      verdictEl.textContent = "⚠️ Vorsicht: Zustand/Unfall drückt den Wert stark – Ankauf nur mit Prüfung.";
+      verdictEl.className = "warn";
+    } else {
+      verdictEl.textContent = "✅ Nutze den Händler-Zielpreis als Grenze: darunter ist es oft ein gutes Schnäppchen.";
+      verdictEl.className = "ok";
+    }
+
+    document.getElementById("ageLine").textContent = `${age} Jahre (Faktor ${ageFactor.toFixed(2)})`;
+    document.getElementById("kmLine").textContent = `${km.toLocaleString("de-DE")} km (Faktor ${kmFactor.toFixed(2)})`;
+
+    const condTxt = (cond==="good"?"Sehr gut":cond==="ok"?"Normal":"Mängel") + (accident==="no"?" + Unfall/unklar":" + Unfallfrei");
+    document.getElementById("condLine").textContent = condTxt;
+
+    const adjPct = Math.round(adj * 100);
+    document.getElementById("adjLine").textContent = `${adjPct >= 0 ? "+" : ""}${adjPct}%`;
+  }
 </script>
-
 </body>
 </html>
