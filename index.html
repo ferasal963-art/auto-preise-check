@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Auto Preise Check</title>
+
+<style>
+  body { font-family: Arial, sans-serif; background:#eef2f5; margin:0; }
+  header { background:#0d47a1; color:#fff; padding:22px; text-align:center; }
+  .container { max-width:1000px; margin:24px auto; background:#fff; padding:22px; border-radius:10px; box-shadow:0 4px 12px rgba(0,0,0,0.1); }
+  .search-box { display:flex; gap:10px; flex-wrap:wrap; }
+  .search-box input { flex:1; min-width:220px; padding:12px; font-size:16px; }
+  .search-box button { padding:12px 18px; background:#0d47a1; color:#fff; border:none; cursor:pointer; font-size:16px; border-radius:8px; }
+  .search-box button:hover { background:#08306b; }
+  .pill { display:inline-block; padding:6px 10px; border-radius:999px; background:#f2f4f7; font-size:13px; margin-top:10px; }
+  .grid { display:grid; grid-template-columns: 1fr; gap:14px; margin-top:16px; }
+  @media (min-width: 900px){ .grid{ grid-template-columns: 1.2fr 0.8fr; } }
+  table { width:100%; margin-top:14px; border-collapse:collapse; }
+  th, td { padding:12px; border-bottom:1px solid #ddd; text-align:left; }
+  th { background:#f5f5f5; }
+  .price-good { color:green; font-weight:bold; }
+  .price-high { color:red; font-weight:bold; }
+  .muted { color:#667085; font-size:14px; }
+  .card { border:1px solid #e5e7eb; border-radius:10px; padding:14px; background:#fff; }
+  .card h2 { margin:0 0 8px 0; font-size:18px; }
+  .form input, .form textarea { width:100%; padding:12px; margin:6px 0; border:1px solid #d0d5dd; border-radius:8px; font-size:16px; }
+  .form textarea { min-height:90px; resize:vertical; }
+  .btn { padding:12px 18px; background:#0d47a1; color:#fff; border:none; cursor:pointer; font-size:16px; border-radius:8px; width:100%; }
+  .btn:hover { background:#08306b; }
+  .btn-wa { display:block; text-align:center; margin-top:10px; padding:12px 18px; background:#25D366; color:#fff; border-radius:8px; text-decoration:none; font-weight:bold; }
+  footer { text-align:center; padding:20px; color:#777; }
+  .hint { background:#fff7ed; border:1px solid #fed7aa; padding:10px; border-radius:10px; font-size:14px; }
+</style>
+</head>
+
+<body>
+
+<header>
+  <h1>🚗 Auto Preise Check</h1>
+  <p>Vergleich + Händler-Modus: Schnäppchen finden & Ankauf-Anfragen bekommen</p>
+</header>
+
+<div class="container">
+
+  <div class="search-box">
+    <input type="text" id="searchInput" placeholder="Suche z.B. BMW 3er, Audi A4">
+    <button onclick="search()">Suchen</button>
+  </div>
+
+  <div class="pill">✅ Händler-Modus: günstigste Angebote oben + „Sehr günstig – kaufen!“</div>
+
+  <table id="resultTable" style="display:none;">
+    <thead>
+      <tr>
+        <th>Anbieter</th>
+        <th>Auto</th>
+        <th>Preis</th>
+        <th>Bewertung</th>
+      </tr>
+    </thead>
+    <tbody id="results"></tbody>
+  </table>
+
+  <div class="grid">
+    <div class="card">
+      <h2>🔔 Auto zum Ankauf anbieten</h2>
+      <p class="muted">Wenn jemand das Formular absendet, bekommst du eine Benachrichtigung (E-Mail), sobald Formspree aktiv ist.</p>
+
+      <div class="hint">
+        ⚠️ Wichtig: Ersetze später <b>DEIN_FORM_ID</b> durch deine Formspree-ID (formspree.io).  
+        Bis dahin funktioniert das Formular noch nicht.
+      </div>
+
+      <form class="form" action="https://formspree.io/f/DEIN_FORM_ID" method="POST">
+        <input type="text" name="name" placeholder="Name" required>
+        <input type="text" name="phone" placeholder="Telefon / WhatsApp" required>
+        <input type="text" name="car" placeholder="Auto (z.B. BMW 320d)" required>
+        <input type="number" name="year" placeholder="Baujahr">
+        <input type="number" name="km" placeholder="Kilometerstand">
+        <input type="number" name="price" placeholder="Wunschpreis (€)">
+        <textarea name="message" placeholder="Beschreibung / Schäden / Extras"></textarea>
+
+        <button class="btn" type="submit">Auto absenden</button>
+      </form>
+
+      <!-- WhatsApp Schnellkontakt (ersetze die Nummer) -->
+      <a class="btn-wa"
+         href="https://wa.me/491234567890?text=Hallo!%20Ich%20m%C3%B6chte%20mein%20Auto%20anbieten.%0A%0AModell:%20%0ABaujahr:%20%0AKM:%20%0APreis:%20%0ABeschreibung:%20">
+         Per WhatsApp anbieten
+      </a>
+      <p class="muted">➡️ Ersetze die Nummer <b>491234567890</b> durch deine WhatsApp Nummer (mit Ländercode, ohne +).</p>
+    </div>
+
+    <div class="card">
+      <h2>💡 Tipp für Händler</h2>
+      <p class="muted">Die Bewertung basiert auf dem Durchschnittspreis der Treffer:</p>
+      <ul class="muted">
+        <li><b>Sehr günstig – kaufen!</b> = deutlich unter Markt</li>
+        <li><b>Unter Marktpreis</b> = gute Chance</li>
+        <li><b>Marktpreis</b> = normal</li>
+        <li><b>Zu teuer</b> = eher lassen</li>
+      </ul>
+      <p class="muted">Später können wir Baujahr/KM-Filter + Gewinnspanne + echte Datenquellen hinzufügen.</p>
+    </div>
+  </div>
+
+</div>
+
+<footer>
+  © 2026 Auto Preise Check – Alle Rechte vorbehalten
+</footer>
+
+<script>
+// Demo-Daten (später kann das durch echte Daten ersetzt werden)
+const cars = [
+  {anbieter:"Mobile.de", auto:"BMW 3er", preis:27900},
+  {anbieter:"AutoScout24", auto:"BMW 3er", preis:28500},
+  {anbieter:"Autohaus Müller", auto:"BMW 3er", preis:30100},
+  {anbieter:"Privatanbieter", auto:"BMW 3er", preis:25500},
+
+  {anbieter:"Mobile.de", auto:"Audi A4", preis:26500},
+  {anbieter:"AutoScout24", auto:"Audi A4", preis:27200},
+  {anbieter:"Autohaus Schmidt", auto:"Audi A4", preis:29000},
+  {anbieter:"Privatanbieter", auto:"Audi A4", preis:24800}
+];
+
+function search() {
+  const query = document.getElementById("searchInput").value.trim().toLowerCase();
+  const table = document.getElementById("resultTable");
+  const results = document.getElementById("results");
+  results.innerHTML = "";
+
+  let filtered = cars.filter(c => c.auto.toLowerCase().includes(query));
+
+  if (!query) {
+    alert("Bitte gib Marke/Modell ein (z.B. BMW 3er).");
+    table.style.display = "none";
+    return;
+  }
+
+  if (filtered.length === 0) {
+    alert("Keine Autos gefunden.");
+    table.style.display = "none";
+    return;
+  }
+
+  // günstigste zuerst
+  filtered.sort((a,b) => a.preis - b.preis);
+
+  // Marktpreis = Durchschnitt
+  const avg = filtered.reduce((sum, item) => sum + item.preis, 0) / filtered.length;
+
+  filtered.forEach(car => {
+    const diff = car.preis - avg;
+    let rating = "";
+
+    if (diff < -1500) {
+      rating = "<span class='price-good'>🔥 Sehr günstig – kaufen!</span>";
+    } else if (diff < -500) {
+      rating = "<span class='price-good'>✅ Unter Marktpreis</span>";
+    } else if (diff < 800) {
+      rating = "⚠️ Marktpreis";
+    } else {
+      rating = "<span class='price-high'>❌ Zu teuer</span>";
+    }
+
+    results.innerHTML += `
+      <tr>
+        <td>${car.anbieter}</td>
+        <td>${car.auto}</td>
+        <td>${car.preis.toLocaleString()} €</td>
+        <td>${rating}</td>
+      </tr>
+    `;
+  });
+
+  table.style.display = "table";
+}
+</script>
+
+</body>
+</html>
