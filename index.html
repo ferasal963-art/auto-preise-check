@@ -267,3 +267,13 @@
 </script>
 </body>
 </html>
+
+async function lookupByKBA() {
+  const hsn = document.getElementById("hsn").value;
+  const tsn = document.getElementById("tsn").value;
+
+  const res = await fetch(`/api/vehicle-lookup?hsn=${hsn}&tsn=${tsn}`);
+  const data = await res.json();
+
+  fillForm(data);
+}
